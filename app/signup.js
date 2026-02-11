@@ -13,6 +13,7 @@ import { Stack, useRouter } from "expo-router";
 import { COLORS, icons, SHADOWS } from "../constants";
 
 const SignUp = () => {
+  const [error, setError] = useState("");  
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,22 +22,24 @@ const SignUp = () => {
 
   const handleRegister = async () => {
     if (!userName || !email || !password) {
-      Alert.alert("Validation Error", "Please fill in all fields.");
+      setError("Please fill in all fields.");
       return;
     }
-
+  
+    setError("");
+  
     const userDetails = {
       userName,
       email,
       password,
       token: "sample-token",
     };
-
+  
     await AsyncStorage.setItem("userDetails", JSON.stringify(userDetails));
-    console.log("User logged in:", userDetails);
-
+  
     router.push("/login");
   };
+  
 
   return (
     <>
