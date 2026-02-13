@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -8,25 +8,19 @@ import {
   StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "expo-router";
-
 import { COLORS, FONT, SIZES } from "../../constants";
 import DailyMeditation from "../../components/DailyMeditation";
+import { useFocusEffect } from "expo-router";
 import ScreenHeaderBtn from "../../components/ScreenHeaderBtn";
 
 const Favourites = () => {
-  // State variables
   const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load favorites from AsyncStorage
   const loadFavorites = async () => {
     try {
       const storedFavorites = await AsyncStorage.getItem("favorites");
-      const favoritesArray = storedFavorites
-        ? JSON.parse(storedFavorites)
-        : [];
-
+      const favoritesArray = storedFavorites ? JSON.parse(storedFavorites) : [];
       setFavorites(favoritesArray);
     } catch (error) {
       console.error("Error loading favorites:", error);
@@ -35,29 +29,31 @@ const Favourites = () => {
     }
   };
 
-  // Reload data whenever screen gains focus
   useFocusEffect(
-    useCallback(() => {
+    React.useCallback(() => {
       setIsLoading(true);
       loadFavorites();
     }, [])
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.darkBackground }}>
       <ScreenHeaderBtn />
-
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.primary} />
           ) : favorites.length === 0 ? (
-            <Text style={styles.headerTitle}>
-              No favorite items found.
-            </Text>
+            <Text style={styles.headerTitle}>No favorite items found.</Text>
           ) : (
             <>
-              <Text style={styles.title}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: "#FF4500",
+                  fontWeight: "bold",
+                }}
+              >
                 My Favourite Exercises
               </Text>
               <DailyMeditation meditations={favorites} />
@@ -69,22 +65,10 @@ const Favourites = () => {
   );
 };
 
-export default Favourites;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.darkBackground,
-  },
   container: {
     marginTop: SIZES.xLarge,
     padding: SIZES.medium,
-  },
-  title: {
-    textAlign: "center",
-    color: "#FF4500",
-    fontWeight: "bold",
-    marginBottom: 15,
   },
   headerTitle: {
     fontSize: SIZES.large,
@@ -94,3 +78,5 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+export default Favourites;
