@@ -5,38 +5,60 @@ import { Stack, useRouter } from "expo-router";
 import { COLORS, icons, SHADOWS } from "../constants";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Validation Error", "Please fill in all fields.");
-      return;
-    }
-
-    const userDetails = { email, password, token: "sample-token" };
-
-    console.log('userDetails', userDetails);
-
-    try {
-      const detailsDatafromSignup = await AsyncStorage.getItem("userDetails");
-      if (detailsDatafromSignup) {
-        const parsedDetails = JSON.parse(detailsDatafromSignup);
-        if (userDetails.email === parsedDetails.email && userDetails.password === parsedDetails.password) {
-          router.push("/home");
-        } else {
-          Alert.alert("Error", "Incorrect email or password.");
-          alert("Error Incorrect email or password.");
-        }
-      } else {
-        Alert.alert("Error", "No user details found in AsyncStorage.");
-        alert("Error No user details found in AsyncStorage.");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+    const router = useRouter();
+  
+    // ---------------- VALIDATION FUNCTION ----------------
+    const validateForm = () => {
+      if (!email.trim() || !password.trim()) {
+        setErrorMessage("Please fill in all fields.");
+        return false;
       }
-    } catch (error) {
-      console.error("Error accessing AsyncStorage", error);
-    }
-  };
-
+  
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setErrorMessage("Please enter a valid email address.");
+        return false;
+      }
+  
+      setErrorMessage("");
+      return true;
+    };
+  
+    // ---------------- AUTHENTICATION FUNCTION ----------------
+    const handleLogin = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("userDetails");
+  
+        if (!storedUser) {
+          setErrorMessage("No user found. Please sign up first.");
+          return;
+        }
+  
+        const parsedUser = JSON.parse(storedUser);
+  
+        if (email === parsedUser.email && password === parsedUser.password) {
+          setErrorMessage("");
+          router.replace("/home");
+        } else {
+          setErrorMessage("Incorrect email or password.");
+        }
+  
+      } catch (error) {
+        console.error("Error accessing AsyncStorage", error);
+        setErrorMessage("Something went wrong.");
+      }
+    };
+  
+    // ---------------- BUTTON HANDLER ----------------
+    const handleLoginPress = () => {
+      if (validateForm()) {
+        handleLogin();
+      }
+    };
+  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightWhite }}>
@@ -88,19 +110,26 @@ const Login = () => {
               onChangeText={setEmail}
               placeholder="Email"
             />
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                padding: 10,
-                borderRadius: 5,
-                marginBottom: 10,
-              }}
-              value={password}
-              secureTextEntry={true}
-              onChangeText={setPassword}
-              placeholder="Password"
-            />
+<TextInput
+  style={{
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  }}
+  value={password}
+  secureTextEntry={true}
+  onChangeText={setPassword}
+  placeholder="Password"
+/>
+
+{errorMessage ? (
+  <Text style={{ color: "red", marginBottom: 10 }}>
+    {errorMessage}
+  </Text>
+) : null}
+
           </View>
           <TouchableOpacity
             style={{
