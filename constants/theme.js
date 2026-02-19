@@ -9,8 +9,8 @@ const COLORS = {
 
   // Dark Mode Support
   darkBackground: "#000000",
-  lightText: "#000000",
-  darkText: "#FFFFFF",
+  lightText: "#FFFFFF",   // ✔ for dark mode
+  darkText: "#000000",    // ✔ for light mode
 };
 
 const FONT = {

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, View } from "react-native";
+import { useEffect, useState, useMemo } from "react";
+import { SafeAreaView, ScrollView, View, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLORS, SIZES } from "../constants/theme";
@@ -15,53 +15,63 @@ import CountryList from "../components/CountryList";
 const Home = () => {
   const [userDetails, setUserDetails] = useState(null);
 
-  // ✅ Use global theme context
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
 
-  useEffect(() => {
-    loadUserDetails();
-  }, []);
-
-  const loadUserDetails = async () => {
-    try {
-      const user = await AsyncStorage.getItem("userDetails");
-      setUserDetails(user ? JSON.parse(user) : null);
-    } catch (error) {
-      console.log("Error loading user:", error);
-    }
-  };
-
-  return (
-    <SafeAreaView
-      style={{
+  // ✅ Dynamic styles using useMemo
+  const dynamicStyles = useMemo(() => {
+    return {
+      container: {
         flex: 1,
         backgroundColor: isDarkMode
           ? COLORS.darkBackground
           : COLORS.lightWhite,
-      }}
-    >
+      },
+      content: {
+        padding: SIZES.medium,
+        backgroundColor: isDarkMode
+          ? COLORS.darkBackground
+          : COLORS.lightWhite,
+      },
+    };
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    const loadUserDetails = async () => {
+      try {
+        const user = await AsyncStorage.getItem("userDetails");
+        setUserDetails(user ? JSON.parse(user) : null);
+      } catch (error) {
+        console.log("Error loading user:", error);
+      }
+    };
+
+    loadUserDetails();
+  }, []);
+
+  return (
+    <SafeAreaView style={dynamicStyles.container}>
       <ScreenHeaderBtn />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View
-          style={{
-            padding: SIZES.medium,
-          }}
-          testID="screensDisplay"
-        >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={dynamicStyles.content}
+      >
+        <View testID="screensDisplay">
+
           <Welcome
             userDetails={userDetails}
             isDarkMode={isDarkMode}
           />
 
-          <DailyQuote />
+          <DailyQuote isDarkMode={isDarkMode} />
 
-          <CountryList />
+          <CountryList isDarkMode={isDarkMode} />
 
           <PopularMeditation isDarkMode={isDarkMode} />
 
           <DailyMeditation isDarkMode={isDarkMode} />
+
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -69,4 +79,3 @@ const Home = () => {
 };
 
 export default Home;
-

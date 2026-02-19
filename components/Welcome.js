@@ -13,22 +13,22 @@ const getThemeStyles = (isDark) => ({
 
 });
 
-const Welcome = ({ userDetails, isDark }) => {
-  const themeStyles = getThemeStyles(isDark);
+const Welcome = ({ userDetails, isDarkMode }) => {
+  const themeStyles = getThemeStyles(isDarkMode);
 
   return (
-    <View>
-      <View style={[styles.container]}>
-        <Text style={[styles.userName, themeStyles.userName]}>
-          Hello {userDetails?.userName}!
-        </Text>
-        <Text style={[styles.welcomeMessage, themeStyles.welcomeMessage]}>
-          Find your perfect meditation
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <Text style={[styles.userName, themeStyles.userName]}>
+        Hello {userDetails?.userName || "User"}!
+      </Text>
+
+      <Text style={[styles.welcomeMessage, themeStyles.welcomeMessage]}>
+        Find your perfect meditation
+      </Text>
     </View>
   );
 };
+
 
 export default Welcome;
 

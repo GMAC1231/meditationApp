@@ -1,168 +1,190 @@
 import React, { useState } from "react";
-import { View, SafeAreaView, Image, Alert, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
 import { COLORS, icons, SHADOWS } from "../constants";
 
 const Login = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-    const router = useRouter();
-  
-    // ---------------- VALIDATION FUNCTION ----------------
-    const validateForm = () => {
-      if (!email.trim() || !password.trim()) {
-        setErrorMessage("Please fill in all fields.");
-        return false;
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // ---------------- VALIDATION ----------------
+  const validateForm = () => {
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage("Please fill in all fields.");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return false;
+    }
+
+    setErrorMessage("");
+    return true;
+  };
+
+  // ---------------- LOGIN FUNCTION ----------------
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+
+    try {
+      const storedUser = await AsyncStorage.getItem("userDetails");
+
+      if (!storedUser) {
+        setErrorMessage("No user found. Please sign up first.");
+        return;
       }
-  
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        setErrorMessage("Please enter a valid email address.");
-        return false;
+
+      const parsedUser = JSON.parse(storedUser);
+
+      if (email === parsedUser.email && password === parsedUser.password) {
+
+        // ✅ SAVE LOGIN SESSION
+        await AsyncStorage.setItem("isLoggedIn", "true");
+
+        setErrorMessage("");
+        router.replace("/home");
+
+      } else {
+        setErrorMessage("Incorrect email or password.");
       }
-  
-      setErrorMessage("");
-      return true;
-    };
-  
-    // ---------------- AUTHENTICATION FUNCTION ----------------
-    const handleLogin = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem("userDetails");
-  
-        if (!storedUser) {
-          setErrorMessage("No user found. Please sign up first.");
-          return;
-        }
-  
-        const parsedUser = JSON.parse(storedUser);
-  
-        if (email === parsedUser.email && password === parsedUser.password) {
-          setErrorMessage("");
-          router.replace("/home");
-        } else {
-          setErrorMessage("Incorrect email or password.");
-        }
-  
-      } catch (error) {
-        console.error("Error accessing AsyncStorage", error);
-        setErrorMessage("Something went wrong.");
-      }
-    };
-  
-    // ---------------- BUTTON HANDLER ----------------
-    const handleLoginPress = () => {
-      if (validateForm()) {
-        handleLogin();
-      }
-    };
-  
+
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage("Something went wrong. Try again.");
+    }
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightWhite }}>
-     <Stack.Screen
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen
         options={{
           headerStyle: { backgroundColor: COLORS.lightWhite },
           headerShadowVisible: false,
-          headerLeft: () => (
-<></>
-          ),
           headerTitle: "",
         }}
       />
-      <View style={{ padding: 20 }}>
-        <View
-          style={{
-            padding: 20,
-            marginLeft: "auto",
-            marginRight: "auto",
-            backgroundColor: "#f0f0f0",
-            borderRadius: 50,
-            height: 90,
-            ...SHADOWS.medium,
-            shadowColor: COLORS.white,
-          }}
-        >
-          <Image
-            source={icons.menu}
-            style={{
-              width: 50,
-              height: 50,
-              marginBottom: 20,
-            }}
+
+      <View style={styles.wrapper}>
+
+        {/* Logo Section */}
+        <View style={styles.logoContainer}>
+          <Image source={icons.menu} style={styles.logo} />
+        </View>
+
+        {/* Input Fields */}
+        <View style={styles.formContainer}>
+
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
-        </View>
 
-        {/* Form Component */}
-        <View style={{ marginTop: 20 }}>
-          <View style={{ marginBottom: 20 }}>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                padding: 10,
-                borderRadius: 5,
-                marginBottom: 10,
-              }}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-            />
-<TextInput
-  style={{
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  }}
-  value={password}
-  secureTextEntry={true}
-  onChangeText={setPassword}
-  placeholder="Password"
-/>
+          <TextInput
+            style={styles.input}
+            value={password}
+            secureTextEntry
+            onChangeText={setPassword}
+            placeholder="Password"
+          />
 
-{errorMessage ? (
-  <Text style={{ color: "red", marginBottom: 10 }}>
-    {errorMessage}
-  </Text>
-) : null}
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
 
-          </View>
-          <TouchableOpacity
-            style={{
-              backgroundColor: COLORS.primary,
-              padding: 15,
-              borderRadius: 5,
-              alignItems: "center",
-            }}
-            onPress={handleLogin}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>Login</Text>
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginText}>Login</Text>
           </TouchableOpacity>
+
         </View>
 
-        {/* Additional Options */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            margin: 10,
-          }}
-        >
-          <Text style={{ marginRight: 5 }}>
-            Don't have an account?
-          </Text>
+        {/* Signup Redirect */}
+        <View style={styles.signupContainer}>
+          <Text>Don't have an account?</Text>
           <TouchableOpacity onPress={() => router.push("/signup")}>
-            <Text style={{ color: "blue" }}>Sign Up</Text>
+            <Text style={styles.signupText}> Sign Up</Text>
           </TouchableOpacity>
         </View>
+
       </View>
     </SafeAreaView>
   );
 };
 
 export default Login;
+
+// ---------------- STYLES ----------------
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.lightWhite,
+  },
+  wrapper: {
+    padding: 20,
+  },
+  logoContainer: {
+    padding: 20,
+    alignSelf: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 50,
+    height: 90,
+    justifyContent: "center",
+    alignItems: "center",
+    ...SHADOWS.medium,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+  },
+  formContainer: {
+    marginTop: 30,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: COLORS.primary,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  loginText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  signupText: {
+    color: "blue",
+    fontWeight: "bold",
+  },
+});
