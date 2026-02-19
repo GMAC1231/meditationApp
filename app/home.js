@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CountryList from "../components/CountryList";
 
 import { COLORS, SIZES } from "../constants/theme";
 import ScreenHeaderBtn from "../components/ScreenHeaderBtn";
@@ -50,6 +51,7 @@ const Home = () => {
           />
 
           <DailyQuote />
+          <CountryList />
 
           <PopularMeditation isDarkMode={isDarkMode} />
 
