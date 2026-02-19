@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CountryList from "../components/CountryList";
 
 import { COLORS, SIZES } from "../constants/theme";
+import { useTheme } from "../context/ThemeProvider";
+
 import ScreenHeaderBtn from "../components/ScreenHeaderBtn";
 import Welcome from "../components/Welcome";
 import PopularMeditation from "../components/PopularMeditation";
 import DailyMeditation from "../components/DailyMeditation";
 import DailyQuote from "../components/DailyQuote";
+import CountryList from "../components/CountryList";
 
 const Home = () => {
   const [userDetails, setUserDetails] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // ✅ Use global theme context
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   useEffect(() => {
     loadUserDetails();
@@ -51,6 +56,7 @@ const Home = () => {
           />
 
           <DailyQuote />
+
           <CountryList />
 
           <PopularMeditation isDarkMode={isDarkMode} />
@@ -63,3 +69,4 @@ const Home = () => {
 };
 
 export default Home;
+
