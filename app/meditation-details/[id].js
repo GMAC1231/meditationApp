@@ -1,5 +1,5 @@
-import { Stack, useGlobalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useGlobalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -23,6 +23,13 @@ import ScreenHeaderBtn from "../../components/ScreenHeaderBtn";
 import { COLORS, SIZES } from "../../constants/theme";
 import useFetch from "../../hook/useFetch";
 
+import {
+  getFavorites,
+  getReminders,
+  toggleFavorite as toggleFavoriteStorage,
+  toggleReminder as toggleReminderStorage,
+} from "../../utils/storage";
+
 const tabs = ["About", "Instructions"];
 
 const MeditationDetails = () => {
@@ -33,16 +40,58 @@ const MeditationDetails = () => {
     query: id,
   });
 
-  const meditationItem = data?.[0]; // Adjust depending on API structure
+  const meditationItem = data?.[0];
 
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isReminder, setIsReminder] = useState(false);
+
+  /* ========================================
+     CHECK IF ALREADY FAVORITE / REMINDER
+  ======================================== */
+  useEffect(() => {
+    if (meditationItem) {
+      checkStatus();
+    }
+  }, [meditationItem]);
+
+  const checkStatus = async () => {
+    const favs = await getFavorites();
+    const rems = await getReminders();
+
+    setIsFavorite(favs.some(f => f.id === meditationItem.id));
+    setIsReminder(rems.some(r => r.id === meditationItem.id));
+  };
+
+  /* ========================================
+     TOGGLE FUNCTIONS
+  ======================================== */
+
+  const handleToggleFavorite = async () => {
+    const newState = await toggleFavoriteStorage(meditationItem);
+    setIsFavorite(newState);
+  };
+
+  const handleToggleReminder = async () => {
+    const newState = await toggleReminderStorage(meditationItem);
+    setIsReminder(newState);
+  };
+
+  /* ========================================
+     REFRESH
+  ======================================== */
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     refetch();
     setRefreshing(false);
-  }, []);
+  }, [refetch]);
+
+  /* ========================================
+     TAB CONTENT
+  ======================================== */
 
   const displayTabContent = () => {
     if (!meditationItem) return null;
@@ -75,6 +124,10 @@ const MeditationDetails = () => {
     return null;
   };
 
+  /* ========================================
+     SHARE
+  ======================================== */
+
   const onShare = async () => {
     try {
       await Share.share({
@@ -87,7 +140,6 @@ const MeditationDetails = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      
       <ScreenHeaderBtn detailPage={true} handleShare={onShare} />
 
       <ScrollView
@@ -104,7 +156,6 @@ const MeditationDetails = () => {
           <Text>No data available</Text>
         ) : (
           <View style={{ padding: SIZES.medium, paddingBottom: 100 }}>
-            
             <MeditationTopDisplay
               meditationImage={meditationItem.image}
               meditationTitle={meditationItem.title}
@@ -119,18 +170,23 @@ const MeditationDetails = () => {
             />
 
             {displayTabContent()}
-
           </View>
         )}
       </ScrollView>
 
-      <Footer data={meditationItem} />
-
+      <Footer
+        data={meditationItem}
+        isFavorite={isFavorite}
+        isReminder={isReminder}
+        toggleFavorite={handleToggleFavorite}
+        toggleReminder={handleToggleReminder}
+      />
     </SafeAreaView>
   );
 };
 
 export default MeditationDetails;
+
 
 const styles = StyleSheet.create({
   specificsContainer: {

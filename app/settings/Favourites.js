@@ -15,6 +15,23 @@ import ScreenHeaderBtn from '../../components/ScreenHeaderBtn'
 const Favourites = () => {
   const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);   
+  const loadFavorites = async () => {
+    try {
+      const storedFavorites = await AsyncStorage.getItem("favorites");
+      const favoritesArray = storedFavorites ? JSON.parse(storedFavorites) : [];
+      setFavorites(favoritesArray);
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+   useFocusEffect(
+    React.useCallback(() => {
+      loadFavorites();
+    }, [])
+  );
+
 return(
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.darkBackground }}>
        <ScreenHeaderBtn/>
@@ -35,22 +52,6 @@ return(
     </SafeAreaView>
 )
 }
- const loadFavorites = async () => {
-    try {
-      const storedFavorites = await AsyncStorage.getItem("favorites");
-      const favoritesArray = storedFavorites ? JSON.parse(storedFavorites) : [];
-      setFavorites(favoritesArray);
-    } catch (error) {
-      console.error("Error loading favorites:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-   useFocusEffect(
-    React.useCallback(() => {
-      loadFavorites();
-    }, [])
-  );
 
 export default Favourites;
 const styles = StyleSheet.create({

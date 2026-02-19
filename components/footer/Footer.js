@@ -1,44 +1,55 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "./Footer.style";
 import { icons } from "../../constants";
-const Footer = ({ data }) => {
-const [isFavorite, setIsFavorite] = useState(false);
-return (
-  <View style={styles.container}>
-    <TouchableOpacity style={styles.likeBtn} onPress={handleFavoriteToggle}>
-      <Image
-        source={isFavorite ? icons.heartFilled : icons.heartOutline}
-        resizeMode="contain"
-        style={[
-          styles.likeBtnImage,
-          { tintColor: isFavorite ? "red" : "#F37453" },
-        ]}
-      />
-    </TouchableOpacity>
 
-    <TouchableOpacity style={styles.applyBtn} onPress={handleFavoriteToggle}>
-      <Text style={styles.applyBtnText}>
-        {isFavorite ? "Remove from favorites" : "Add to favorites"}
-      </Text>
-    </TouchableOpacity>
-  </View>
-);
-}
-const handleFavoriteToggle = async () => {
-  try {
-    let favorites = await AsyncStorage.getItem("favorites");
-    favorites = favorites ? JSON.parse(favorites) : [];
+const Footer = ({
+  isFavorite,
+  isReminder,
+  toggleFavorite,
+  toggleReminder,
+}) => {
+  return (
+    <View style={styles.container}>
 
-    const updatedFavorites = isFavorite
-      ? favorites.filter((item) => item.id !== data.id)
-      : [...favorites, data];
+      {/* Heart Button */}
+      <TouchableOpacity
+        style={styles.likeBtn}
+        onPress={toggleFavorite}
+      >
+        <Image
+          source={isFavorite ? icons.heartFilled : icons.heartOutline}
+          resizeMode="contain"
+          style={[
+            styles.likeBtnImage,
+            { tintColor: isFavorite ? "red" : "#F37453" },
+          ]}
+        />
+      </TouchableOpacity>
 
-    await AsyncStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-    setIsFavorite(!isFavorite);
-  } catch (error) {
-    console.error("Failed to update favorites", error);
-  }
+      {/* 🔔 Reminder Button */}
+      <TouchableOpacity
+        style={styles.likeBtn}
+        onPress={toggleReminder}
+      >
+        <Text style={{ fontSize: 24 }}>
+          {isReminder ? "🔔" : "🔕"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Bottom Button */}
+      <TouchableOpacity
+        style={styles.applyBtn}
+        onPress={toggleFavorite}
+      >
+        <Text style={styles.applyBtnText}>
+          {isFavorite
+            ? "Remove from favorites"
+            : "Add to favorites"}
+        </Text>
+      </TouchableOpacity>
+
+    </View>
+  );
 };
+
 export default Footer;
