@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -11,10 +11,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS, FONT, SIZES } from "../../constants";
 import DailyMeditation from "../../components/DailyMeditation";
 import { useFocusEffect } from "expo-router";
-import ScreenHeaderBtn from '../../components/ScreenHeaderBtn'
+import ScreenHeaderBtn from "../../components/ScreenHeaderBtn";
+import { useTheme } from "../../context/ThemeProvider";
+
 const Favourites = () => {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
   const [favorites, setFavorites] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);   
+  const [isLoading, setIsLoading] = useState(true);
+
   const loadFavorites = async () => {
     try {
       const storedFavorites = await AsyncStorage.getItem("favorites");
@@ -26,34 +32,58 @@ const Favourites = () => {
       setIsLoading(false);
     }
   };
-   useFocusEffect(
+
+  useFocusEffect(
     React.useCallback(() => {
       loadFavorites();
     }, [])
   );
 
-return(
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.darkBackground }}>
-       <ScreenHeaderBtn/>
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: isDarkMode ? "#121212" : COLORS.lightWhite,
+      }}
+    >
+      <ScreenHeaderBtn />
+
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.primary} />
           ) : favorites.length === 0 ? (
-            <Text style={styles.headerTitle}>No favorite items found.</Text>
+            <Text
+              style={[
+                styles.headerTitle,
+                { color: isDarkMode ? "#FFFFFF" : COLORS.primary },
+              ]}
+            >
+              No favorite items found.
+            </Text>
           ) : (
-             <>
-                <Text style={{ textAlign: "center", color: "#FF4500", fontWeight: "bold" }}>My Favourite Exercises</Text>
-                <DailyMeditation meditations={favorites} />
+            <>
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: isDarkMode ? "#FF7A59" : "#FF4500",
+                  fontWeight: "bold",
+                }}
+              >
+                My Favourite Exercises
+              </Text>
+
+              <DailyMeditation meditations={favorites} />
             </>
           )}
         </View>
       </ScrollView>
     </SafeAreaView>
-)
-}
+  );
+};
 
 export default Favourites;
+
 const styles = StyleSheet.create({
   container: {
     marginTop: SIZES.xLarge,
@@ -62,7 +92,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: SIZES.large,
     fontFamily: FONT.medium,
-    color: COLORS.primary,
     textAlign: "center",
     marginTop: 20,
   },

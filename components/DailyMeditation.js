@@ -10,9 +10,12 @@ import {
 } from "react-native";
 import { COLORS, FONT, SIZES, SHADOWS } from "../constants/theme";
 import useFetch from "../hook/useFetch";
+import { useTheme } from "../context/ThemeProvider";
 
 const DailyMeditation = ({ meditations }) => {
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const { isLoading, error, bestMeditations } = useFetch("search", {
     query: "",
@@ -28,22 +31,44 @@ const DailyMeditation = ({ meditations }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Daily Meditation</Text>
+        <Text
+          style={[
+            styles.headerTitle,
+            { color: isDarkMode ? "#FFFFFF" : COLORS.primary },
+          ]}
+        >
+          Daily Meditation
+        </Text>
       </View>
 
       <View style={styles.cardsContainer}>
         {isLoading ? (
           <ActivityIndicator size="large" color={COLORS.primary} />
         ) : error ? (
-          <Text>Something went wrong</Text>
+          <Text style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}>
+            Something went wrong
+          </Text>
         ) : (
           data?.map((meditation) => (
             <TouchableOpacity
               key={`meditation-${meditation.id}`}
-              style={styles.cardContainer}
+              style={[
+                styles.cardContainer,
+                {
+                  backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
+                  shadowColor: isDarkMode ? "#000" : COLORS.white,
+                },
+              ]}
               onPress={() => handleNavigate(meditation.id)}
             >
-              <View style={styles.logoContainer}>
+              <View
+                style={[
+                  styles.logoContainer,
+                  {
+                    backgroundColor: isDarkMode ? "#2A2A2A" : COLORS.white,
+                  },
+                ]}
+              >
                 <Image
                   source={{ uri: meditation.image }}
                   resizeMode="cover"
@@ -52,13 +77,29 @@ const DailyMeditation = ({ meditations }) => {
               </View>
 
               <View style={styles.textContainer}>
-                <Text style={styles.meditationName} numberOfLines={1}>
+                <Text
+                  style={[
+                    styles.meditationName,
+                    { color: isDarkMode ? "#FFFFFF" : COLORS.primary },
+                  ]}
+                  numberOfLines={1}
+                >
                   {meditation.title}
                 </Text>
-                <Text style={styles.meditationDetail}>
+
+                <Text
+                  style={{
+                    color: isDarkMode ? "#BBBBBB" : "#444444",
+                  }}
+                >
                   {meditation.target}
                 </Text>
-                <Text style={styles.meditationDetail}>
+
+                <Text
+                  style={{
+                    color: isDarkMode ? "#BBBBBB" : "#444444",
+                  }}
+                >
                   {meditation.duration}
                 </Text>
               </View>
@@ -86,7 +127,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: SIZES.large,
     fontFamily: FONT.medium,
-    color: COLORS.primary,
   },
   cardsContainer: {
     marginTop: SIZES.medium,
@@ -97,14 +137,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: SIZES.medium,
     borderRadius: SIZES.small,
-    backgroundColor: "#FFF",
     ...SHADOWS.medium,
-    shadowColor: COLORS.white,
   },
   logoContainer: {
     width: "100%",
     height: 150,
-    backgroundColor: COLORS.white,
     justifyContent: "center",
     borderRadius: SIZES.medium,
     alignItems: "center",
@@ -122,6 +159,5 @@ const styles = StyleSheet.create({
   meditationName: {
     fontSize: SIZES.medium,
     fontFamily: "DMBold",
-    color: COLORS.primary,
   },
 });

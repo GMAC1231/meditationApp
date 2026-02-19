@@ -76,7 +76,7 @@ const Settings = () => {
         {/* Favourites */}
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/Favourites")}
+          onPress={() => router.push("/settings/Favourites")}
         >
           <Text style={styles.cardText}>🧘 My Favourites</Text>
         </TouchableOpacity>

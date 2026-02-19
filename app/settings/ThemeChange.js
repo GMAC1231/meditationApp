@@ -25,20 +25,24 @@ const ThemeChange = () => {
         style={[
           styles.toggleCard,
           {
-            backgroundColor: isDarkMode
-              ? "#000"
-              : "#000",
+            backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
           },
         ]}
       >
-        <Text style={styles.text}>
+        <Text
+          style={[
+            styles.text,
+            { color: isDarkMode ? "#FFFFFF" : "#000000" },
+          ]}
+        >
           {isDarkMode ? "Dark Mode" : "Light Mode"}
         </Text>
 
         <Switch
           value={isDarkMode}
           onValueChange={toggleTheme}
-          trackColor={{ false: "#ccc", true: "#fff" }}
+          trackColor={{ false: "#ccc", true: COLORS.primary }}
+          thumbColor={isDarkMode ? "#fff" : "#f4f3f4"}
         />
       </View>
     </SafeAreaView>
@@ -62,7 +66,6 @@ const styles = StyleSheet.create({
     ...SHADOWS.medium,
   },
   text: {
-    color: "white",
     fontSize: 20,
     fontWeight: "bold",
   },
