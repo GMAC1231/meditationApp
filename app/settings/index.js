@@ -53,7 +53,7 @@ const Settings = () => {
       ]
     );
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeaderBtn />
@@ -65,7 +65,8 @@ const Settings = () => {
       </View>
 
       <View style={styles.content}>
-        {/* Theme Settings */}
+
+        {/* Account Settings */}
         <TouchableOpacity
           style={styles.card}
           onPress={() => router.push("/settings/ThemeChange")}
@@ -79,6 +80,14 @@ const Settings = () => {
           onPress={() => router.push("/settings/Favourites")}
         >
           <Text style={styles.cardText}>🧘 My Favourites</Text>
+        </TouchableOpacity>
+
+        {/* 🔔 Daily Reminder (NEW) */}
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => router.push("/settings/DailyReminders")}
+        >
+          <Text style={styles.cardText}>⏰ Daily Reminder</Text>
         </TouchableOpacity>
 
         {/* Notifications */}
@@ -100,6 +109,7 @@ const Settings = () => {
             ⬅ Logout
           </Text>
         </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
