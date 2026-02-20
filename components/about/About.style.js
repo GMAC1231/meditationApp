@@ -8,6 +8,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+    wrapper: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  card: {
+    padding: 18,
+    borderRadius: 18,
+  },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
 contextText: {
     textAlign: 'justify'
   },
