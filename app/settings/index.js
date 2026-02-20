@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
 import { COLORS, SIZES, SHADOWS } from "../../constants";
 import ScreenHeaderBtn from "../../components/ScreenHeaderBtn";
 
@@ -18,8 +19,10 @@ const Settings = () => {
 
   useEffect(() => {
     loadUser();
+    requestNotificationPermission();
   }, []);
 
+  // Load logged-in user
   const loadUser = async () => {
     try {
       const user = await AsyncStorage.getItem("userDetails");
@@ -32,35 +35,49 @@ const Settings = () => {
     }
   };
 
+  // Ask notification permission
+  const requestNotificationPermission = async () => {
+    await Notifications.requestPermissionsAsync();
+  };
+
+  // Test notification function
+  const scheduleNotification = async (title, body) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+      },
+      trigger: null, // Immediate trigger
+    });
+  };
+
+  // Logout logic
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem("userDetails");
-              setUserName("");
-              router.replace("/login");
-            } catch (error) {
-              console.log("Logout error:", error);
-            }
-          },
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem("userDetails");
+            setUserName("");
+            router.replace("/login");
+          } catch (error) {
+            console.log("Logout error:", error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeaderBtn />
 
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>
-          Hello, {userName ? userName : "User"} 👋
+          Hello, {userName || "User"} 👋
         </Text>
       </View>
 
@@ -82,7 +99,7 @@ const Settings = () => {
           <Text style={styles.cardText}>🧘 My Favourites</Text>
         </TouchableOpacity>
 
-        {/* 🔔 Daily Reminder (NEW) */}
+        {/* Daily Reminder */}
         <TouchableOpacity
           style={styles.card}
           onPress={() => router.push("/settings/DailyReminders")}
@@ -93,6 +110,19 @@ const Settings = () => {
         {/* Notifications */}
         <TouchableOpacity style={styles.card}>
           <Text style={styles.cardText}>🔔 Notifications</Text>
+        </TouchableOpacity>
+
+        {/* ✅ Test Notification (NEW) */}
+        <TouchableOpacity
+          style={[styles.card, styles.testNotification]}
+          onPress={() =>
+            scheduleNotification(
+              "Test Notification",
+              "This is a test notification from your Meditation App."
+            )
+          }
+        >
+          <Text style={styles.cardText}>🧪 Test Notification</Text>
         </TouchableOpacity>
 
         {/* About */}
@@ -141,6 +171,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: SIZES.medium,
     ...SHADOWS.medium,
+  },
+  testNotification: {
+    backgroundColor: "#E6F0FF",
   },
   logout: {
     backgroundColor: "#FDE8E8",

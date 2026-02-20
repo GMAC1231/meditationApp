@@ -6,9 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Alert,
   TextInput,
   StyleSheet,
+  Modal,
 } from "react-native";
 import { Stack } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,40 +27,45 @@ const DailyReminders = () => {
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [manualTime, setManualTime] = useState("");
-  const [userDetails, setUserDetails] = useState(null);
+
+  // ✅ Custom Popup State
+  const [popup, setPopup] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
+
+  const showPopup = (title, message) => {
+    setPopup({ visible: true, title, message });
+  };
+
+  const closePopup = () => {
+    setPopup({ visible: false, title: "", message: "" });
+  };
 
   useEffect(() => {
     requestPermissions();
-    loadUserDetails();
     loadReminders();
   }, []);
 
-  // ✅ Updated Permission Handler (Mobile + Web)
+  // ✅ Permission Handler
   const requestPermissions = async () => {
     if (Platform.OS === "web") {
       if ("Notification" in window) {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
-          Alert.alert(
-            "Permission not granted",
-            "Please allow browser notifications."
-          );
+          showPopup("Permission Required", "Please allow browser notifications.");
         }
       }
     } else {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permission not granted",
+        showPopup(
+          "Permission Required",
           "Please allow notifications to receive reminders."
         );
       }
     }
-  };
-
-  const loadUserDetails = async () => {
-    const user = await AsyncStorage.getItem("userDetails");
-    setUserDetails(user ? JSON.parse(user) : {});
   };
 
   const loadReminders = async () => {
@@ -74,7 +79,7 @@ const DailyReminders = () => {
     setReminders(futureReminders);
   };
 
-  // ✅ Updated Schedule Function (Works in Chrome)
+  // ✅ Notification Scheduler
   const scheduleNotification = async (reminder) => {
     const triggerDate = new Date(reminder.triggerDate);
 
@@ -102,15 +107,15 @@ const DailyReminders = () => {
 
   const handleAddReminder = async () => {
     if (!selectedDate) {
-      Alert.alert("Error", "Please select a date.");
+      showPopup("Error", "Please select a date.");
       return;
     }
+
+    const triggerDate = new Date(selectedDate);
 
     const [hours, minutes] = manualTime
       .split(":")
       .map((item) => parseInt(item, 10));
-
-    const triggerDate = new Date(selectedDate);
 
     if (!isNaN(hours) && !isNaN(minutes)) {
       triggerDate.setHours(hours, minutes, 0, 0);
@@ -124,7 +129,7 @@ const DailyReminders = () => {
     }
 
     if (triggerDate <= new Date()) {
-      Alert.alert("Error", "Please select a future time.");
+      showPopup("Error", "Please select a future time.");
       return;
     }
 
@@ -149,9 +154,10 @@ const DailyReminders = () => {
       );
       setReminders(updatedReminders);
       await scheduleNotification(newReminder);
-      Alert.alert("Success", "Reminder added successfully!");
+
+      showPopup("Success", "Reminder added successfully!");
     } catch (error) {
-      Alert.alert("Error", "Error adding reminder.");
+      showPopup("Error", "Error adding reminder.");
     }
   };
 
@@ -200,17 +206,6 @@ const DailyReminders = () => {
           }}
         />
 
-        {showTimePicker && (
-          <DateTimePicker
-            value={selectedTime}
-            mode="time"
-            onChange={(event, selected) => {
-              setSelectedTime(selected || selectedTime);
-              setShowTimePicker(false);
-            }}
-          />
-        )}
-
         <TextInput
           placeholder="Enter Time (HH:mm)"
           value={manualTime}
@@ -222,15 +217,6 @@ const DailyReminders = () => {
 
         <Text style={styles.selected}>
           Date: {selectedDate || "None"}
-        </Text>
-
-        <Text style={styles.selected}>
-          Time:{" "}
-          {manualTime ||
-            selectedTime.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
         </Text>
 
         <TouchableOpacity
@@ -250,6 +236,23 @@ const DailyReminders = () => {
           <Text>No reminders yet.</Text>
         )}
       </ScrollView>
+
+      {/* ✅ Custom Popup Modal */}
+      <Modal transparent visible={popup.visible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{popup.title}</Text>
+            <Text style={styles.modalMessage}>{popup.message}</Text>
+
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={closePopup}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -259,7 +262,7 @@ export default DailyReminders;
 const styles = StyleSheet.create({
   reminderContainer: {
     backgroundColor: COLORS.primary,
-    borderRadius: SIZES.small,
+    borderRadius: 12,
     padding: SIZES.small,
     marginVertical: SIZES.small,
   },
@@ -274,6 +277,7 @@ const styles = StyleSheet.create({
   input: {
     borderColor: COLORS.primary,
     borderWidth: 1,
+    borderRadius: 8,
     padding: SIZES.small,
     marginVertical: SIZES.small,
   },
@@ -285,8 +289,9 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: COLORS.primary,
     padding: SIZES.medium,
-    borderRadius: SIZES.medium,
+    borderRadius: 25,
     alignItems: "center",
+    marginTop: 10,
   },
   buttonText: {
     color: COLORS.lightWhite,
@@ -305,5 +310,43 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: COLORS.primary,
     marginVertical: SIZES.medium,
+  },
+
+  // 🔥 Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 350,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 15,
+    marginBottom: 15,
+    color: "#333",
+  },
+  modalButton: {
+    alignSelf: "flex-end",
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
